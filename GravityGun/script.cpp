@@ -122,13 +122,14 @@ void drawDebug(Vector o, int r, int g, int b)
 
 void main()
 {
+	Entity hoverEntity = 0;
 	while (true)
 	{
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 		std::stringstream sstream;
-		bool hoverEntity = get_key_pressed('E');
+		bool hoverEntityState = get_key_pressed('E');
 		Vector handPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f));
 		Vector elbowPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[3], 0.0f, 0.0f, 0.0f));
 
@@ -138,48 +139,64 @@ void main()
 		Vector offset = aim.cross(up);
 		offset = offset.normalized();
 
+		float aimMul = 6.0f;
+		float offsetMul = 0.8f;
+		float upMul = -0.8f;
+		float velocityMultiplier = 50.0f;
+
 		Vector hoverPosition;
-		hoverPosition = handPosition + aim + offset;
+		hoverPosition = handPosition + aim * aimMul + offset * offsetMul + up * upMul;
 		drawDebug(up, 255, 255, 0);
 		drawDebug(offset, 0, 0, 255);
 		drawDebug(aim, 255, 0, 255);
-		GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, hoverPosition.x, hoverPosition.y, hoverPosition.z, 255, 0, 0, 255);
-		GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, handPosition.x, handPosition.y, handPosition.z + 1.0f, 255, 255, 0, 255);
 
 		if (PLAYER::IS_PLAYER_FREE_AIMING(player) &&
-			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN"))
+			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN") &&
+			!PED::IS_PED_IN_ANY_VEHICLE(playerPed, true))
 		{
 			Any temp = 0;
 			PLAYER::_0x2975C866E6713290(player, &temp); //_GET_AIMED_ENTITY
 
-			sstream << "target: "<<temp;
+			sstream << "target: "<<temp << "hover: "<<hoverEntity;
+			if (!hoverEntityState)
+			{
+				hoverEntity = 0;
+			}
+			if (hoverEntity)
+			{
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(hoverEntity, hoverPosition.x, hoverPosition.y, hoverPosition.z, 0, 0, 1);
+			}
+
 			if (temp)
 			{
 				Entity targetEntity = temp;
 				Vector playerPos(ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 0.0f));
 				Vector entityPos(ENTITY::GET_ENTITY_COORDS(targetEntity, true));
-				GRAPHICS::DRAW_LINE(playerPos.x, playerPos.y, playerPos.z, entityPos.x, entityPos.y, entityPos.z, 255, 0, 0, 255);
 
-				if (hoverEntity)
+				//If the player wants to hover an entity
+				if (hoverEntityState)
 				{
-					ENTITY::SET_ENTITY_COORDS_NO_OFFSET(targetEntity, hoverPosition.x, hoverPosition.y, hoverPosition.z, 0, 0, 1);
+					//And is currently not hovering an entity
+					if (!hoverEntity)
+					{
+						//Set the hover entity to current target
+						hoverEntity = targetEntity;
+					}
 				}
 				
 				if (PED::IS_PED_SHOOTING(playerPed))
 				{	
 					Vector velocity;
-					float velocityMultiplier = 30.0f;
-
-					//Get vector between player and entity
-					velocity = entityPos - playerPos;
-					//Normalize vector
-					velocity = velocity.normalized();
-					//Multiply to add more power
-					velocity = velocity * velocityMultiplier;
+					velocity = hoverPosition - handPosition;
+					velocity = velocity.normalized() * velocityMultiplier;
 
 					ENTITY::SET_ENTITY_VELOCITY(targetEntity, velocity.x, velocity.y, velocity.z);
 				}
 			}
+		}
+		else
+		{
+			hoverEntity = 0;
 		}
 		draw_menu_line(sstream.str(), 250.0, 9.0, 60.0, 0.0, 9.0, false, false);
 
