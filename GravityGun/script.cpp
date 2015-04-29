@@ -113,6 +113,13 @@ int pedBones[] =
 	63931, //
 };
 
+void drawDebug(Vector o, int r, int g, int b)
+{
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	Vector handPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f));
+	GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, handPosition.x + o.x, handPosition.y + o.y, handPosition.z + o.z, r, g, b, 255);
+}
+
 void main()
 {
 	while (true)
@@ -126,16 +133,18 @@ void main()
 		Vector elbowPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[3], 0.0f, 0.0f, 0.0f));
 
 		Vector aim = handPosition - elbowPosition;
-
-		float aimMultiplier = 3.0f;
-		aim = aim.normalized() * aimMultiplier;
-
+		aim = aim.normalized();
 		Vector up(0, 0, 1);
-		Vector offset = aim.cross(up).normalized() * 3.0f;
+		Vector offset = aim.cross(up);
+		offset = offset.normalized();
 
 		Vector hoverPosition;
 		hoverPosition = handPosition + aim + offset;
+		drawDebug(up, 255, 255, 0);
+		drawDebug(offset, 0, 0, 255);
+		drawDebug(aim, 255, 0, 255);
 		GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, hoverPosition.x, hoverPosition.y, hoverPosition.z, 255, 0, 0, 255);
+		GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, handPosition.x, handPosition.y, handPosition.z + 1.0f, 255, 255, 0, 255);
 
 		if (PLAYER::IS_PLAYER_FREE_AIMING(player) &&
 			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN"))
