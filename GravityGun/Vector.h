@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <windows.h>
+#include "types.h"
 
 #pragma pack(push, 1)
 class Vector
@@ -16,6 +17,7 @@ public:
 	DWORD _paddingz;
 public:
 	Vector(float x = 0, float y = 0, float z = 0);
+	Vector(Vector3 other);
 	~Vector();
 	
 	float length() const;
@@ -32,6 +34,7 @@ public:
 	Vector& operator-=(const Vector& other);
 
 	Vector& operator=(const Vector& other);
+	Vector& operator=(const Vector3& other);
 
 	friend Vector operator+(const Vector& vec1, const Vector& vec2);
 	friend Vector operator-(const Vector& vec1, const Vector& vec2);
@@ -40,6 +43,7 @@ public:
 	friend Vector operator*(const Vector& vector, float scalar);
 	friend Vector operator*(float scalar, const Vector& vector);
 
+	
 	
 };
 #pragma pack(pop)

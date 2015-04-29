@@ -7,6 +7,13 @@ Vector::Vector(float x, float y, float z)
 	this->z = z;
 }
 
+Vector::Vector(Vector3 other)
+{
+	this->x = other.x;
+	this->y = other.y;
+	this->z = other.z;
+}
+
 Vector::~Vector()
 {
 
@@ -68,6 +75,13 @@ Vector& Vector::operator-=(const Vector& other)
 }
 
 Vector& Vector::operator=(const Vector& other)
+{
+	this->x = other.x;
+	this->y = other.y;
+	this->z = other.z;
+	return *this;
+}
+Vector& Vector::operator=(const Vector3& other)
 {
 	this->x = other.x;
 	this->y = other.y;

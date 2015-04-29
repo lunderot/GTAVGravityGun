@@ -122,35 +122,20 @@ void main()
 
 		std::stringstream sstream;
 		bool hoverEntity = get_key_pressed('E');
+		Vector handPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f));
+		Vector elbowPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[3], 0.0f, 0.0f, 0.0f));
 
-		Vector3 handPosition = PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f);
-		Vector3 elbowPosition = PED::GET_PED_BONE_COORDS(playerPed, pedBones[3], 0.0f, 0.0f, 0.0f);
-		Vector3 aim;
-		aim.x = handPosition.x - elbowPosition.x;
-		aim.y = handPosition.y - elbowPosition.y;
-		aim.z = handPosition.z - elbowPosition.z;
+		Vector aim = handPosition - elbowPosition;
+
 		float aimMultiplier = 3.0f;
-		float magnitude = sqrt(pow(aim.x, 2) + pow(aim.z, 2) + pow(aim.z, 2));
-		aim.x /= magnitude;
-		aim.y /= magnitude;
-		aim.z /= magnitude;
-		aim.x *= aimMultiplier;
-		aim.y *= aimMultiplier;
-		aim.z *= aimMultiplier;
-		
+		aim = aim.normalized() * aimMultiplier;
 
 		Vector up(0, 0, 1);
+		Vector offset = aim.cross(up).normalized() * 3.0f;
 
-		Vector3 offset;
-
-
-		Vector3 hoverPosition;
-		hoverPosition.x = handPosition.x + aim.x;
-		hoverPosition.y = handPosition.y + aim.y;
-		hoverPosition.z = handPosition.z + aim.z;
+		Vector hoverPosition;
+		hoverPosition = handPosition + aim + offset;
 		GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, hoverPosition.x, hoverPosition.y, hoverPosition.z, 255, 0, 0, 255);
-		
-		
 
 		if (PLAYER::IS_PLAYER_FREE_AIMING(player) &&
 			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN"))
@@ -162,8 +147,8 @@ void main()
 			if (temp)
 			{
 				Entity targetEntity = temp;
-				Vector3 playerPos = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 0.0f);
-				Vector3 entityPos = ENTITY::GET_ENTITY_COORDS(targetEntity, true);
+				Vector playerPos(ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 0.0f));
+				Vector entityPos(ENTITY::GET_ENTITY_COORDS(targetEntity, true));
 				GRAPHICS::DRAW_LINE(playerPos.x, playerPos.y, playerPos.z, entityPos.x, entityPos.y, entityPos.z, 255, 0, 0, 255);
 
 				if (hoverEntity)
@@ -172,27 +157,16 @@ void main()
 				}
 				
 				if (PED::IS_PED_SHOOTING(playerPed))
-				{
-					sstream << " setting velocity";
-					
-					Vector3 velocity;
+				{	
+					Vector velocity;
 					float velocityMultiplier = 30.0f;
 
 					//Get vector between player and entity
-					velocity.x = entityPos.x - playerPos.x;
-					velocity.y = entityPos.y - playerPos.y;
-					velocity.z = entityPos.z - playerPos.z;
-
+					velocity = entityPos - playerPos;
 					//Normalize vector
-					float magnitude = sqrt(pow(velocity.x, 2) + pow(velocity.z, 2) + pow(velocity.z, 2));
-					velocity.x /= magnitude;
-					velocity.y /= magnitude;
-					velocity.z /= magnitude;
-
+					velocity = velocity.normalized();
 					//Multiply to add more power
-					velocity.x *= velocityMultiplier;
-					velocity.y *= velocityMultiplier;
-					velocity.z *= velocityMultiplier;
+					velocity = velocity * velocityMultiplier;
 
 					ENTITY::SET_ENTITY_VELOCITY(targetEntity, velocity.x, velocity.y, velocity.z);
 				}
