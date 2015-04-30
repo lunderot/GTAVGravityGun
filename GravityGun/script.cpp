@@ -154,10 +154,10 @@ void main()
 			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN") &&
 			!PED::IS_PED_IN_ANY_VEHICLE(playerPed, true))
 		{
-			Any temp = 0;
-			PLAYER::_0x2975C866E6713290(player, &temp); //_GET_AIMED_ENTITY
+			Any targetEntity = 0;
+			PLAYER::_0x2975C866E6713290(player, &targetEntity); //_GET_AIMED_ENTITY
 
-			sstream << "target: "<<temp << "hover: "<<hoverEntity;
+			sstream << "target: " << targetEntity << "hover: " << hoverEntity;
 			if (!hoverEntityState)
 			{
 				hoverEntity = 0;
@@ -167,9 +167,8 @@ void main()
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(hoverEntity, hoverPosition.x, hoverPosition.y, hoverPosition.z, 0, 0, 1);
 			}
 
-			if (temp)
+			if (targetEntity)
 			{
-				Entity targetEntity = temp;
 				Vector playerPos(ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 0.0f));
 				Vector entityPos(ENTITY::GET_ENTITY_COORDS(targetEntity, true));
 
