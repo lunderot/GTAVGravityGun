@@ -4,6 +4,9 @@
 #include <string>
 #include <ctime>
 #include <sstream>
+#include <DirectXMath.h>
+
+#define PI 3.14159265
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
@@ -123,32 +126,39 @@ void drawDebug(Vector o, int r, int g, int b)
 void main()
 {
 	Entity hoverEntity = 0;
+	bool attachedObject = false;
+	Any handObject = 0;
+
+	float hoverDistance = 6.0f;
+	float velocityMultiplier = 50.0f;
+
 	while (true)
 	{
+		std::stringstream sstream;
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		std::stringstream sstream;
+		if (get_key_pressed(VK_NUMPAD5) && !attachedObject)
+		{
+			Vector3 offset = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PLAYER::PLAYER_PED_ID(), 0.0f, 0.0f, 1.0f);
+			handObject = OBJECT::CREATE_OBJECT(0x848B8ABA, offset.x, offset.y, offset.z, 1, 1, 0);
+			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			attachedObject = true;
+		}
+		
+		Vector handObjectPosition;
+		Vector handObjectForwardVector;
+
+		if (handObject)
+		{
+			handObjectPosition = ENTITY::GET_ENTITY_COORDS(handObject, true);
+			handObjectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(handObject);
+			drawDebug(handObjectForwardVector, 255, 128, 0);
+		}
+		
 		bool hoverEntityState = get_key_pressed('E');
-		Vector handPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f));
-		Vector elbowPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[3], 0.0f, 0.0f, 0.0f));
-
-		Vector aim = handPosition - elbowPosition;
-		aim = aim.normalized();
-		Vector up(0, 0, 1);
-		Vector offset = aim.cross(up);
-		offset = offset.normalized();
-
-		float aimMul = 6.0f;
-		float offsetMul = 0.8f;
-		float upMul = -0.8f;
-		float velocityMultiplier = 50.0f;
-
-		Vector hoverPosition;
-		hoverPosition = handPosition + aim * aimMul + offset * offsetMul + up * upMul;
-		drawDebug(up, 255, 255, 0);
-		drawDebug(offset, 0, 0, 255);
-		drawDebug(aim, 255, 0, 255);
+		
+		Vector hoverPosition = handObjectPosition + handObjectForwardVector.normalized() * hoverDistance;
 
 		if (PLAYER::IS_PLAYER_FREE_AIMING(player) &&
 			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN") &&
@@ -184,11 +194,8 @@ void main()
 				}
 				
 				if (PED::IS_PED_SHOOTING(playerPed))
-				{	
-					Vector velocity;
-					velocity = hoverPosition - handPosition;
-					velocity = velocity.normalized() * velocityMultiplier;
-
+				{
+					Vector velocity = handObjectForwardVector.normalized() * velocityMultiplier;
 					ENTITY::SET_ENTITY_VELOCITY(targetEntity, velocity.x, velocity.y, velocity.z);
 				}
 			}
@@ -197,7 +204,7 @@ void main()
 		{
 			hoverEntity = 0;
 		}
-		draw_menu_line(sstream.str(), 250.0, 9.0, 60.0, 0.0, 9.0, false, false);
+		draw_menu_line(sstream.str(), 350.0, 9.0, 60.0, 0.0, 9.0, false, false);
 
 		WAIT(0);
 	}
