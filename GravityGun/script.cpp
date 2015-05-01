@@ -116,11 +116,11 @@ int pedBones[] =
 	63931, //
 };
 
-void drawDebug(Vector o, int r, int g, int b)
+void drawDebug(Vector o, int r, int g, int b, Vector startPosition)
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	Vector handPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f));
-	GRAPHICS::DRAW_LINE(handPosition.x, handPosition.y, handPosition.z, handPosition.x + o.x, handPosition.y + o.y, handPosition.z + o.z, r, g, b, 255);
+	GRAPHICS::DRAW_LINE(startPosition.x, startPosition.y, startPosition.z, startPosition.x + o.x, startPosition.y + o.y, startPosition.z + o.z, r, g, b, 255);
 }
 
 void main()
@@ -128,9 +128,25 @@ void main()
 	Entity hoverEntity = 0;
 	bool attachedObject = false;
 	Any handObject = 0;
+	Vector attachOffset(0.2f, 0.05f, 0.0f);
 
 	float hoverDistance = 6.0f;
 	float velocityMultiplier = 50.0f;
+
+	bool currentButtonStateF7 = false;
+	bool previousButtonStateF7 = false;
+	bool currentButtonStateF4 = false;
+	bool previousButtonStateF4 = false;
+
+	bool currentButtonStateF8 = false;
+	bool previousButtonStateF8 = false;
+	bool currentButtonStateF5 = false;
+	bool previousButtonStateF5 = false;
+
+	bool currentButtonStateF9 = false;
+	bool previousButtonStateF9 = false;
+	bool currentButtonStateF6 = false;
+	bool previousButtonStateF6 = false;
 
 	while (true)
 	{
@@ -138,13 +154,87 @@ void main()
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		if (get_key_pressed(VK_NUMPAD5) && !attachedObject)
+		if (get_key_pressed(VK_NUMPAD2) && !attachedObject)
 		{
 			Vector3 offset = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PLAYER::PLAYER_PED_ID(), 0.0f, 0.0f, 1.0f);
 			handObject = OBJECT::CREATE_OBJECT(0x848B8ABA, offset.x, offset.y, offset.z, 1, 1, 0);
-			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
 			attachedObject = true;
 		}
+
+		//x position
+		currentButtonStateF7 = get_key_pressed(VK_NUMPAD7);
+		if (currentButtonStateF7 != previousButtonStateF7)
+		{
+			if (currentButtonStateF7)
+			{
+				ENTITY::DETACH_ENTITY(attachedObject, 1, 1);
+				attachOffset.x += 0.01f;
+				ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			}
+		}
+		previousButtonStateF7 = currentButtonStateF7;
+		currentButtonStateF4 = get_key_pressed(VK_NUMPAD4);
+		if (currentButtonStateF4 != previousButtonStateF4)
+		{
+			if (currentButtonStateF4)
+			{
+				ENTITY::DETACH_ENTITY(attachedObject, 1, 1);
+				attachOffset.x -= 0.01f;
+				ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			}
+		}
+		previousButtonStateF4 = currentButtonStateF4;
+		
+		//y position
+		currentButtonStateF8 = get_key_pressed(VK_NUMPAD8);
+		if (currentButtonStateF8 != previousButtonStateF8)
+		{
+			if (currentButtonStateF8)
+			{
+				ENTITY::DETACH_ENTITY(attachedObject, 1, 1);
+				attachOffset.y += 0.01f;
+				ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			}
+		}
+		previousButtonStateF8 = currentButtonStateF8;
+		currentButtonStateF5 = get_key_pressed(VK_NUMPAD5);
+		if (currentButtonStateF5 != previousButtonStateF5)
+		{
+			if (currentButtonStateF5)
+			{
+				ENTITY::DETACH_ENTITY(attachedObject, 1, 1);
+				attachOffset.y -= 0.01f;
+				ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			}
+		}
+		previousButtonStateF5 = currentButtonStateF5;
+
+		//z position
+		currentButtonStateF9 = get_key_pressed(VK_NUMPAD9);
+		if (currentButtonStateF9 != previousButtonStateF9)
+		{
+			if (currentButtonStateF9)
+			{
+				ENTITY::DETACH_ENTITY(attachedObject, 1, 1);
+				attachOffset.z += 0.01f;
+				ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			}
+		}
+		previousButtonStateF9 = currentButtonStateF9;
+		currentButtonStateF6 = get_key_pressed(VK_NUMPAD6);
+		if (currentButtonStateF6 != previousButtonStateF6)
+		{
+			if (currentButtonStateF6)
+			{
+				ENTITY::DETACH_ENTITY(attachedObject, 1, 1);
+				attachOffset.z -= 0.01f;
+				ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			}
+		}
+		previousButtonStateF6 = currentButtonStateF6;
+
+		sstream << attachOffset.x << " " << attachOffset.y << " " << attachOffset.z;
 		
 		Vector handObjectPosition;
 		Vector handObjectForwardVector;
@@ -153,7 +243,8 @@ void main()
 		{
 			handObjectPosition = ENTITY::GET_ENTITY_COORDS(handObject, true);
 			handObjectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(handObject);
-			drawDebug(handObjectForwardVector, 255, 128, 0);
+			drawDebug(handObjectForwardVector, 255, 128, 0, handObjectPosition);
+			drawDebug(handObjectForwardVector * hoverDistance, 255, 0, 0, handObjectPosition);
 		}
 		
 		bool hoverEntityState = get_key_pressed('E');
