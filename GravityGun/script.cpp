@@ -139,11 +139,12 @@ void main()
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		if (get_key_pressed(VK_NUMPAD2) && !attachedObject)
+		if (ENTITY::DOES_ENTITY_EXIST(playerPed) && !attachedObject)
 		{
-			Vector3 offset = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PLAYER::PLAYER_PED_ID(), 0.0f, 0.0f, 1.0f);
+			Vector3 offset = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 1.0f);
 			handObject = OBJECT::CREATE_OBJECT(0x848B8ABA, offset.x, offset.y, offset.z, 1, 1, 0);
-			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(PLAYER::PLAYER_PED_ID(), 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(playerPed, 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			ENTITY::SET_ENTITY_ALPHA(handObject, 0, false);
 			attachedObject = true;
 		}
 		
