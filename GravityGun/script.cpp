@@ -188,6 +188,14 @@ void main()
 					{
 						hoverEntity = targetEntity;
 					}
+					if (ENTITY::IS_ENTITY_A_VEHICLE(hoverEntity))
+					{
+						Any pedDriver = VEHICLE::GET_PED_IN_VEHICLE_SEAT(hoverEntity, -1);
+						if (ENTITY::DOES_ENTITY_EXIST(pedDriver))
+						{
+							AI::TASK_LEAVE_VEHICLE(pedDriver, hoverEntity, 1 << 4);
+						}
+					}
 				}
 				
 				if (PED::IS_PED_SHOOTING(playerPed))
