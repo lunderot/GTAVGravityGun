@@ -129,6 +129,7 @@ void main()
 	bool attachedObject = false;
 	Any handObject = 0;
 	Vector attachOffset(0.2f, 0.05f, 0.0f);
+	Vector attachRotationOffset(0.0f, 0.0f, -95.0f);
 
 	float hoverDistance = 6.0f;
 	float velocityMultiplier = 50.0f;
@@ -143,7 +144,7 @@ void main()
 		{
 			Vector3 offset = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 1.0f);
 			handObject = OBJECT::CREATE_OBJECT(0x848B8ABA, offset.x, offset.y, offset.z, 1, 1, 0);
-			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(playerPed, 28422), attachOffset.x, attachOffset.y, attachOffset.z, 0.0f, 0.0f, -90.0f, 0, 0, 0, 0, 2, 1);
+			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(playerPed, 28422), attachOffset.x, attachOffset.y, attachOffset.z, attachRotationOffset.x, attachRotationOffset.y, attachRotationOffset.z, 0, 0, 0, 0, 2, 1);
 			ENTITY::SET_ENTITY_ALPHA(handObject, 0, false);
 			attachedObject = true;
 		}
