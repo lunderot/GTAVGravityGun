@@ -167,6 +167,7 @@ void main()
 	Any hoverEntity = 0;
 	Any shootEntity = 0;
 	int shootTimer = 0;
+	bool shootState = false;
 
 	while (true)
 	{
@@ -180,16 +181,17 @@ void main()
 		{
 			shootTimer--; //TODO: Decrease with milliseconds passed since last frame
 		}
-		if (shootTimer < 0)
-		{
-			shootEntity = 0;
-			shootTimer = 0;
-		}
-		if (shootEntity && shootTimer == 0)
+		if (shootEntity && shootTimer == 0 && !shootState)
 		{
 			Vector velocity = GetShootDirectionFromObject(object);
 			ENTITY::SET_ENTITY_VELOCITY(shootEntity, velocity.x, velocity.y, velocity.z);
+			shootState = true;
 			shootTimer = shootCooldown;
+		}
+		if (shootTimer == 0)
+		{
+			shootState = false;
+			shootEntity = 0;
 		}
 		
 
