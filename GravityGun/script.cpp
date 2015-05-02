@@ -160,6 +160,44 @@ Vector GetShootDirectionFromObject(Any object)
 	return objectForwardVector.normalized() * velocityMultiplier;
 }
 
+void RemoveEveryPedFromVehicle(Any vehicle)
+{
+	Any ped;
+	int max = VEHICLE::GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS(vehicle);
+	for (int i = -1; i < max; i++)
+	{
+		ped = VEHICLE::GET_PED_IN_VEHICLE_SEAT(vehicle, i);
+		if (ENTITY::DOES_ENTITY_EXIST(ped))
+		{
+			AI::TASK_LEAVE_VEHICLE(ped, vehicle, 1 << 4); //TODO: Loop for all passanger in the vehicle
+		}
+	}
+}
+
+Any ProcessHoverEntity(Any hoverEntity)
+{
+	if (ENTITY::IS_ENTITY_A_PED(hoverEntity))
+	{
+		if (PED::IS_PED_IN_ANY_VEHICLE(hoverEntity, false))
+		{
+			Any ped = hoverEntity;
+			Any vehicle = PED::GET_VEHICLE_PED_IS_IN(hoverEntity, false);
+			RemoveEveryPedFromVehicle(vehicle);
+			hoverEntity = vehicle;
+		}
+		else
+		{
+			PED::SET_PED_CAN_RAGDOLL(hoverEntity, true);
+			PED::SET_PED_TO_RAGDOLL(hoverEntity, 0, 0, 0, 1, 1, 0);
+		}
+	}
+	if (ENTITY::IS_ENTITY_A_VEHICLE(hoverEntity))
+	{
+		RemoveEveryPedFromVehicle(hoverEntity);
+	}
+	return hoverEntity;
+}
+
 void main()
 {
 	bool hoverButton = false;
@@ -202,6 +240,7 @@ void main()
 			AttachObjectToPlayer(playerPed, object);
 			if (hoverButton && hoverEntity && hoverEntity != shootEntity)
 			{
+				hoverEntity = ProcessHoverEntity(hoverEntity);
 				Vector hoverPosition = GetHoverPositionFromObject(object);
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(hoverEntity, hoverPosition.x, hoverPosition.y, hoverPosition.z, 0, 0, 1);
 				if (PED::IS_PED_SHOOTING(playerPed))
