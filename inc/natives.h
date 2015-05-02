@@ -5,7 +5,7 @@
 */
 
 //	You can always get the latest native delclarations from NATIVE DB (http://dev-c.com/nativedb)
-//	Prior to 25 Apr 2015 NATIVE DB isn't updated yet to support PC natives.	
+//	Prior to 02 May 2015 NATIVE DB isn't updated yet to support PC natives.	
 
 //	Most param names are not filled yet because this is what must be done via NATIVEDB
 //	and not using manual changes into the header file.
@@ -2639,7 +2639,7 @@ namespace WEAPON
 	static void SET_PED_AMMO_TO_DROP(Any p0, Any p1) { invoke<Void>(0xA4EFEF9440A5B0EF, p0, p1); } // A4EFEF9440A5B0EF 2386A307
 	static void _0xE620FD3512A04F18(float p0) { invoke<Void>(0xE620FD3512A04F18, p0); } // E620FD3512A04F18 D6460EA2
 	static Any _0x7FEAD38B326B9F74(Any p0, Any p1) { return invoke<Any>(0x7FEAD38B326B9F74, p0, p1); } // 7FEAD38B326B9F74 09337863
-	static Any GET_PED_LAST_WEAPON_IMPACT_COORD(Ped Handle, float* Coords) { return invoke<Any>(0x6C4D0409BA1A2BC2, Handle, Coords); } // 0x9B266079
+	static Any GET_PED_LAST_WEAPON_IMPACT_COORD(Any p0, Any p1) { return invoke<Any>(0x6C4D0409BA1A2BC2, p0, p1); } // 6C4D0409BA1A2BC2 9B266079
 	static void SET_PED_GADGET(Any p0, Any p1, BOOL p2) { invoke<Void>(0xD0D7B1E680ED4A1A, p0, p1, p2); } // D0D7B1E680ED4A1A 8A256D0A
 	static BOOL _0xF731332072F5156C(Any p0, Any p1) { return invoke<BOOL>(0xF731332072F5156C, p0, p1); } // F731332072F5156C 8DDD0B5B
 	static Any GET_SELECTED_PED_WEAPON(Any p0) { return invoke<Any>(0x0A6DB4965674D243, p0); } // 0A6DB4965674D243 D240123E
