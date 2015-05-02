@@ -128,7 +128,7 @@ void main()
 	Vector attachRotationOffset(0.0f, 0.0f, -95.0f);
 
 	float hoverDistance = 6.0f;
-	float velocityMultiplier = 50.0f;
+	float velocityMultiplier = 80.0f;
 
 	while (true)
 	{
@@ -179,7 +179,15 @@ void main()
 				if (hoverEntityState && !hoverEntity)
 				{
 					//Set the hover entity to current target
-					hoverEntity = targetEntity;
+					//If it is a ped, hover it's vehicle instead
+					if (ENTITY::IS_ENTITY_A_PED(targetEntity) && PED::IS_PED_IN_ANY_VEHICLE(targetEntity, false))
+					{
+						hoverEntity = PED::GET_VEHICLE_PED_IS_IN(targetEntity, false);
+					}
+					else
+					{
+						hoverEntity = targetEntity;
+					}
 				}
 				
 				if (PED::IS_PED_SHOOTING(playerPed))
