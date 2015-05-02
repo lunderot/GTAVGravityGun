@@ -2,11 +2,7 @@
 #include "Vector.h"
 
 #include <string>
-#include <ctime>
 #include <sstream>
-#include <DirectXMath.h>
-
-#define PI 3.14159265
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
@@ -136,7 +132,6 @@ void main()
 
 	while (true)
 	{
-		std::stringstream sstream;
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
@@ -156,8 +151,6 @@ void main()
 		{
 			handObjectPosition = ENTITY::GET_ENTITY_COORDS(handObject, true);
 			handObjectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(handObject);
-			drawDebug(handObjectForwardVector, 255, 128, 0, handObjectPosition);
-			drawDebug(handObjectForwardVector * hoverDistance, 255, 0, 0, handObjectPosition);
 		}
 		
 		bool hoverEntityState = get_key_pressed('E');
@@ -171,7 +164,6 @@ void main()
 			Any targetEntity = 0;
 			PLAYER::_0x2975C866E6713290(player, &targetEntity); //_GET_AIMED_ENTITY
 
-			sstream << "target: " << targetEntity << "hover: " << hoverEntity;
 			if (!hoverEntityState)
 			{
 				hoverEntity = 0;
@@ -183,18 +175,11 @@ void main()
 
 			if (targetEntity)
 			{
-				Vector playerPos(ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 0.0f));
-				Vector entityPos(ENTITY::GET_ENTITY_COORDS(targetEntity, true));
-
-				//If the player wants to hover an entity
-				if (hoverEntityState)
+				//If the player wants to hover an entity and is currently not hovering an entity
+				if (hoverEntityState && !hoverEntity)
 				{
-					//And is currently not hovering an entity
-					if (!hoverEntity)
-					{
-						//Set the hover entity to current target
-						hoverEntity = targetEntity;
-					}
+					//Set the hover entity to current target
+					hoverEntity = targetEntity;
 				}
 				
 				if (PED::IS_PED_SHOOTING(playerPed))
@@ -208,14 +193,11 @@ void main()
 		{
 			hoverEntity = 0;
 		}
-		draw_menu_line(sstream.str(), 350.0, 9.0, 60.0, 0.0, 9.0, false, false);
-
 		WAIT(0);
 	}
 }
 
 void ScriptMain()
 {
-	srand(GetTickCount());
 	main();
 }
