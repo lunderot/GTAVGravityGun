@@ -4,14 +4,12 @@
 #include <string>
 #include <sstream>
 
-#pragma warning(disable : 4244 4305) // double <-> float conversions
-
 void draw_rect(float A_0, float A_1, float A_2, float A_3, int A_4, int A_5, int A_6, int A_7)
 {
 	GRAPHICS::DRAW_RECT((A_0 + (A_2 * 0.5f)), (A_1 + (A_3 * 0.5f)), A_2, A_3, A_4, A_5, A_6, A_7);
 }
 
-void draw_menu_line(std::string caption, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool title, bool rescaleText = true)
+void DrawMenuLine(std::string caption, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool title, bool rescaleText = true)
 {
 	// default values
 	int text_col[4] = {255, 255, 255, 255},
@@ -85,7 +83,7 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 		rect_col[0], rect_col[1], rect_col[2], rect_col[3]);	
 }
 
-bool get_key_pressed(int nVirtKey)
+bool GetKeyPressed(int nVirtKey)
 {
 	return (GetAsyncKeyState(nVirtKey) & 0x8000) != 0;
 }
@@ -112,103 +110,119 @@ int pedBones[] =
 	63931, //
 };
 
-void drawDebug(Vector o, int r, int g, int b, Vector startPosition)
+void DrawDebug(Vector o, int r, int g, int b, Vector startPosition)
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	Vector handPosition(PED::GET_PED_BONE_COORDS(playerPed, pedBones[13], 0.0f, 0.0f, 0.0f));
 	GRAPHICS::DRAW_LINE(startPosition.x, startPosition.y, startPosition.z, startPosition.x + o.x, startPosition.y + o.y, startPosition.z + o.z, r, g, b, 255);
 }
 
+char* weaponName = "WEAPON_STUNGUN";
+float hoverDistance = 6.0f;
+float velocityMultiplier = 80.0f;
+char keyCode = 'E';
+int shootCooldown = 50; //In milliseconds
+
+Vector attachOffset(0.2f, 0.05f, 0.0f);
+Vector attachRotationOffset(0.0f, 0.0f, -95.0f);
+Vector dummyObjectRestingPosition(0.0f, 0.0f, -1000.0f);
+
+
+Any CreateDummyObject(Any playerPed)
+{
+	Any object = OBJECT::CREATE_OBJECT(0x848B8ABA, dummyObjectRestingPosition.x, dummyObjectRestingPosition.y, dummyObjectRestingPosition.z, 1, 1, 0);
+	ENTITY::SET_ENTITY_ALPHA(object, 0, false);
+	return object;
+}
+
+void AttachObjectToPlayer(Any playerPed, Any object)
+{
+	ENTITY::ATTACH_ENTITY_TO_ENTITY(object, playerPed, PED::GET_PED_BONE_INDEX(playerPed, 28422), attachOffset.x, attachOffset.y, attachOffset.z, attachRotationOffset.x, attachRotationOffset.y, attachRotationOffset.z, 0, 0, 0, 0, 2, 1);
+}
+
+void DetachObjectFromPlayer(Any object)
+{
+	ENTITY::DETACH_ENTITY(object, 1, 1);
+	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(object, dummyObjectRestingPosition.x, dummyObjectRestingPosition.y, dummyObjectRestingPosition.z, 0, 0, 1);
+}
+
+Vector GetHoverPositionFromObject(Any object)
+{
+	Vector objectPosition = ENTITY::GET_ENTITY_COORDS(object, true);
+	Vector objectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(object);
+	return objectPosition + objectForwardVector.normalized() * hoverDistance;
+}
+
+Vector GetShootDirectionFromObject(Any object)
+{
+	Vector objectPosition = ENTITY::GET_ENTITY_COORDS(object, true);
+	Vector objectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(object);
+	return objectForwardVector.normalized() * velocityMultiplier;
+}
+
 void main()
 {
-	Entity hoverEntity = 0;
-	bool attachedObject = false;
-	Any handObject = 0;
-	Vector attachOffset(0.2f, 0.05f, 0.0f);
-	Vector attachRotationOffset(0.0f, 0.0f, -95.0f);
-
-	float hoverDistance = 6.0f;
-	float velocityMultiplier = 80.0f;
+	bool hoverButton = false;
+	Any object = CreateDummyObject(PLAYER::PLAYER_PED_ID());
+	Any hoverEntity = 0;
+	Any shootEntity = 0;
+	int shootTimer = 0;
 
 	while (true)
 	{
+		std::stringstream debug;
+		hoverButton = GetKeyPressed(keyCode);
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		if (ENTITY::DOES_ENTITY_EXIST(playerPed) && !attachedObject)
+		
+		if (shootTimer > 0)
 		{
-			Vector3 offset = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.0f, 0.0f, 1.0f);
-			handObject = OBJECT::CREATE_OBJECT(0x848B8ABA, offset.x, offset.y, offset.z, 1, 1, 0);
-			ENTITY::ATTACH_ENTITY_TO_ENTITY(handObject, playerPed, PED::GET_PED_BONE_INDEX(playerPed, 28422), attachOffset.x, attachOffset.y, attachOffset.z, attachRotationOffset.x, attachRotationOffset.y, attachRotationOffset.z, 0, 0, 0, 0, 2, 1);
-			ENTITY::SET_ENTITY_ALPHA(handObject, 0, false);
-			attachedObject = true;
+			shootTimer--; //TODO: Decrease with milliseconds passed since last frame
+		}
+		if (shootTimer < 0)
+		{
+			shootEntity = 0;
+			shootTimer = 0;
+		}
+		if (shootEntity && shootTimer == 0)
+		{
+			Vector velocity = GetShootDirectionFromObject(object);
+			ENTITY::SET_ENTITY_VELOCITY(shootEntity, velocity.x, velocity.y, velocity.z);
+			shootTimer = shootCooldown;
 		}
 		
-		Vector handObjectPosition;
-		Vector handObjectForwardVector;
-
-		if (handObject)
-		{
-			handObjectPosition = ENTITY::GET_ENTITY_COORDS(handObject, true);
-			handObjectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(handObject);
-		}
-		
-		bool hoverEntityState = get_key_pressed('E');
-		
-		Vector hoverPosition = handObjectPosition + handObjectForwardVector.normalized() * hoverDistance;
 
 		if (PLAYER::IS_PLAYER_FREE_AIMING(player) &&
-			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN") &&
+			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY(weaponName) &&
 			!PED::IS_PED_IN_ANY_VEHICLE(playerPed, true))
 		{
-			Any targetEntity = 0;
-			PLAYER::_0x2975C866E6713290(player, &targetEntity); //_GET_AIMED_ENTITY
-
-			if (!hoverEntityState)
+			AttachObjectToPlayer(playerPed, object);
+			if (hoverButton && hoverEntity && hoverEntity != shootEntity)
 			{
-				hoverEntity = 0;
-			}
-			if (hoverEntity)
-			{
+				Vector hoverPosition = GetHoverPositionFromObject(object);
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(hoverEntity, hoverPosition.x, hoverPosition.y, hoverPosition.z, 0, 0, 1);
-			}
-
-			if (targetEntity)
-			{
-				//If the player wants to hover an entity and is currently not hovering an entity
-				if (hoverEntityState && !hoverEntity)
-				{
-					//Set the hover entity to current target
-					//If it is a ped, hover it's vehicle instead
-					if (ENTITY::IS_ENTITY_A_PED(targetEntity) && PED::IS_PED_IN_ANY_VEHICLE(targetEntity, false))
-					{
-						hoverEntity = PED::GET_VEHICLE_PED_IS_IN(targetEntity, false);
-					}
-					else
-					{
-						hoverEntity = targetEntity;
-					}
-					if (ENTITY::IS_ENTITY_A_VEHICLE(hoverEntity))
-					{
-						Any pedDriver = VEHICLE::GET_PED_IN_VEHICLE_SEAT(hoverEntity, -1);
-						if (ENTITY::DOES_ENTITY_EXIST(pedDriver))
-						{
-							AI::TASK_LEAVE_VEHICLE(pedDriver, hoverEntity, 1 << 4);
-						}
-					}
-				}
-				
 				if (PED::IS_PED_SHOOTING(playerPed))
 				{
-					Vector velocity = handObjectForwardVector.normalized() * velocityMultiplier;
-					ENTITY::SET_ENTITY_VELOCITY(targetEntity, velocity.x, velocity.y, velocity.z);
+					shootEntity = hoverEntity;
 				}
+			}
+			else
+			{
+				hoverEntity = 0;
+				PLAYER::_0x2975C866E6713290(player, &hoverEntity); //_GET_AIMED_ENTITY
 			}
 		}
 		else
 		{
 			hoverEntity = 0;
+			DetachObjectFromPlayer(object);
 		}
+		debug	<< "   se: " << shootEntity
+				<< "\t st: " << shootTimer
+				<< "\t he: " << hoverEntity
+				<< "\t hb: " << hoverButton;
+		DrawMenuLine(debug.str(), 500.0, 9.0, 60.0, 0.0, 9.0, false, false);
 		WAIT(0);
 	}
 }
