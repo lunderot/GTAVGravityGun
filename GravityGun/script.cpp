@@ -2,6 +2,7 @@
 #include "keyboard.h"
 
 #include "Vector.h"
+#include "IniReader.h"
 
 #include <string>
 #include <sstream>
@@ -114,16 +115,9 @@ void DrawDebug(Vector o, int r, int g, int b, Vector startPosition)
 	GRAPHICS::DRAW_LINE(startPosition.x, startPosition.y, startPosition.z, startPosition.x + o.x, startPosition.y + o.y, startPosition.z + o.z, r, g, b, 255);
 }
 
-char* weaponName = "WEAPON_STUNGUN";
-float hoverDistance = 6.0f;
-float velocityMultiplier = 80.0f;
-char keyCode = 'E';
-int shootCooldown = 50; //In milliseconds
-
 Vector attachOffset(0.2f, 0.05f, 0.0f);
 Vector attachRotationOffset(0.0f, 0.0f, -95.0f);
 Vector dummyObjectRestingPosition(0.0f, 0.0f, -1000.0f);
-
 
 Any CreateDummyObject(Any playerPed)
 {
@@ -143,7 +137,7 @@ void DetachObjectFromPlayer(Any object)
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(object, dummyObjectRestingPosition.x, dummyObjectRestingPosition.y, dummyObjectRestingPosition.z, 0, 0, 1);
 }
 
-Vector GetHoverPositionFromObject(Any object)
+Vector GetHoverPositionFromObject(Any object, float hoverDistance)
 {
 	Vector objectPosition = ENTITY::GET_ENTITY_COORDS(object, true);
 	Vector objectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(object);
@@ -154,7 +148,7 @@ Vector GetShootDirectionFromObject(Any object)
 {
 	Vector objectPosition = ENTITY::GET_ENTITY_COORDS(object, true);
 	Vector objectForwardVector = ENTITY::GET_ENTITY_FORWARD_VECTOR(object);
-	return objectForwardVector.normalized() * velocityMultiplier;
+	return objectForwardVector.normalized();
 }
 
 void RemoveEveryPedFromVehicle(Any vehicle)
@@ -166,7 +160,7 @@ void RemoveEveryPedFromVehicle(Any vehicle)
 		ped = VEHICLE::GET_PED_IN_VEHICLE_SEAT(vehicle, i);
 		if (ENTITY::DOES_ENTITY_EXIST(ped))
 		{
-			AI::TASK_LEAVE_VEHICLE(ped, vehicle, 1 << 4); //TODO: Loop for all passanger in the vehicle
+			AI::TASK_LEAVE_VEHICLE(ped, vehicle, 1 << 4);
 		}
 	}
 }
@@ -197,6 +191,16 @@ Any ProcessHoverEntity(Any hoverEntity)
 
 void main()
 {
+	IniReader ini(".\\GravityGun.ini");
+
+	std::string weaponName = ini.ReadString("settings", "weaponName", "WEAPON_STUNGUN");
+	float hoverDistance = ini.ReadFloat("settings", "hoverDistance", 6.0f);
+	float velocityMultiplier = ini.ReadFloat("settings", "velocityMultiplier", 80.0f);
+	char hoverKey = ini.ReadHexInt("settings", "hoverKey", 'E');
+	int showDebug = ini.ReadInt("settings", "showDebug", 0);
+
+	int shootCooldown = 50; //In milliseconds
+
 	bool hoverButton = false;
 	Any object = CreateDummyObject(PLAYER::PLAYER_PED_ID());
 	Any hoverEntity = 0;
@@ -207,7 +211,7 @@ void main()
 	while (true)
 	{
 		std::stringstream debug;
-		hoverButton = IsKeyDown(keyCode);
+		hoverButton = IsKeyDown(hoverKey);
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
@@ -218,7 +222,7 @@ void main()
 		}
 		if (shootEntity && shootTimer == 0 && !shootState)
 		{
-			Vector velocity = GetShootDirectionFromObject(object);
+			Vector velocity = GetShootDirectionFromObject(object) * velocityMultiplier;
 			ENTITY::SET_ENTITY_VELOCITY(shootEntity, velocity.x, velocity.y, velocity.z);
 			shootState = true;
 			shootTimer = shootCooldown;
@@ -231,14 +235,14 @@ void main()
 		
 
 		if (PLAYER::IS_PLAYER_FREE_AIMING(player) &&
-			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY(weaponName) &&
+			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY((char*)weaponName.c_str()) &&
 			!PED::IS_PED_IN_ANY_VEHICLE(playerPed, true))
 		{
 			AttachObjectToPlayer(playerPed, object);
 			if (hoverButton && hoverEntity && hoverEntity != shootEntity)
 			{
 				hoverEntity = ProcessHoverEntity(hoverEntity);
-				Vector hoverPosition = GetHoverPositionFromObject(object);
+				Vector hoverPosition = GetHoverPositionFromObject(object, hoverDistance);
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(hoverEntity, hoverPosition.x, hoverPosition.y, hoverPosition.z, 0, 0, 1);
 				if (PED::IS_PED_SHOOTING(playerPed))
 				{
@@ -256,11 +260,15 @@ void main()
 			hoverEntity = 0;
 			DetachObjectFromPlayer(object);
 		}
-		debug	<< "   se: " << shootEntity
-				<< "\t st: " << shootTimer
-				<< "\t he: " << hoverEntity
-				<< "\t hb: " << hoverButton;
-		DrawMenuLine(debug.str(), 500.0, 9.0, 60.0, 0.0, 9.0, false, false);
+		debug	<< weaponName
+				<< "\t hd: " << hoverDistance
+				<< "\t vm: " << velocityMultiplier
+				<< "\t hk: " << hoverKey;
+		if (showDebug)
+		{
+			DrawMenuLine(debug.str(), 500.0, 9.0, 60.0, 0.0, 9.0, false, false);
+		}
+		
 		WAIT(0);
 	}
 }
