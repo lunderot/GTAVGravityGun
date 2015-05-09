@@ -1,4 +1,6 @@
 #include "script.h"
+#include "keyboard.h"
+
 #include "Vector.h"
 
 #include <string>
@@ -81,11 +83,6 @@ void DrawMenuLine(std::string caption, float lineWidth, float lineHeight, float 
 	draw_rect(lineLeftScaled, lineTopScaled + (0.00278f), 
 		lineWidthScaled, ((((float)(num25)* UI::_0xDB88A37483346780(text_scale, 0)) + (lineHeightScaled * 2.0f)) + 0.005f),
 		rect_col[0], rect_col[1], rect_col[2], rect_col[3]);	
-}
-
-bool GetKeyPressed(int nVirtKey)
-{
-	return (GetAsyncKeyState(nVirtKey) & 0x8000) != 0;
 }
 
 int pedBones[] =
@@ -210,7 +207,7 @@ void main()
 	while (true)
 	{
 		std::stringstream debug;
-		hoverButton = GetKeyPressed(keyCode);
+		hoverButton = IsKeyDown(keyCode);
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
