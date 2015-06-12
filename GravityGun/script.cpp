@@ -76,7 +76,7 @@ void DrawMenuLine(std::string caption, float lineWidth, float lineHeight, float 
 	UI::SET_TEXT_CENTRE(0);
 	UI::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
 	UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	UI::_0x521FB041D93DD0E4("STRING");
+	UI::_SET_TEXT_GXT_ENTRY("STRING");
 	UI::_ADD_TEXT_COMPONENT_STRING((LPSTR)caption.c_str());
 	int num25 = UI::_0x9040DFB09BE75706(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
 
@@ -203,7 +203,7 @@ void main()
 
 	bool hoverButton = false;
 	Any object = CreateDummyObject(PLAYER::PLAYER_PED_ID());
-	Any hoverEntity = 0;
+	Entity hoverEntity = 0;
 	Any shootEntity = 0;
 	int shootTimer = 0;
 	bool shootState = false;
@@ -252,7 +252,7 @@ void main()
 			else
 			{
 				hoverEntity = 0;
-				PLAYER::_0x2975C866E6713290(player, &hoverEntity); //_GET_AIMED_ENTITY
+				PLAYER::_GET_AIMED_ENTITY(player, &hoverEntity);
 			}
 		}
 		else
