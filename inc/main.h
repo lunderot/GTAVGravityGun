@@ -1,7 +1,7 @@
 /*
 	THIS FILE IS A PART OF GTA V SCRIPT HOOK SDK
 				http://dev-c.com			
-			(C) Alexander Blade 2015
+		 (C) Alexander Blade 2015-2016
 */
 
 #pragma once
@@ -101,8 +101,14 @@ IMPORT UINT64 *getGlobalPtr(int globalId);
 IMPORT int worldGetAllVehicles(int *arr, int arrSize);
 IMPORT int worldGetAllPeds(int *arr, int arrSize);
 IMPORT int worldGetAllObjects(int *arr, int arrSize);
+IMPORT int worldGetAllPickups(int *arr, int arrSize);
 
 /* misc */
+
+// Returns base object pointer using it's script handle
+// make sure that you check game version before accessing object fields because
+// offsets may differ between patches
+IMPORT BYTE *getScriptHandleBaseAddress(int handle);
 
 enum eGameVersion : int
 {
@@ -120,6 +126,18 @@ enum eGameVersion : int
 
 	VER_1_0_393_4_STEAM,
 	VER_1_0_393_4_NOSTEAM,
+
+	VER_1_0_463_1_STEAM,
+	VER_1_0_463_1_NOSTEAM,
+
+	VER_1_0_505_2_STEAM,
+	VER_1_0_505_2_NOSTEAM,
+
+	VER_1_0_573_1_STEAM,
+	VER_1_0_573_1_NOSTEAM,
+
+	VER_1_0_617_1_STEAM,
+	VER_1_0_617_1_NOSTEAM,
 
 	VER_SIZE,
 	VER_UNK = -1

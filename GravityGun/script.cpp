@@ -252,7 +252,7 @@ void main()
 			else
 			{
 				hoverEntity = 0;
-				PLAYER::_GET_AIMED_ENTITY(player, &hoverEntity);
+				PLAYER::GET_ENTITY_PLAYER_IS_FREE_AIMING_AT(player, &hoverEntity);
 			}
 		}
 		else
